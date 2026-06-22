@@ -1,0 +1,1546 @@
+bash
+
+cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>查無此日</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;600&family=Noto+Sans+TC:wght@300;400&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --black: #0a0a0f;
+    --deep: #0f0f1a;
+    --panel: #141420;
+    --border: #2a2a3d;
+    --dim: #3a3a55;
+    --muted: #6b6b8a;
+    --text: #c8c8d8;
+    --bright: #e8e8f0;
+    --white: #f0f0f8;
+
+    --xu-blue: #6ab0d4;
+    --xu-glow: rgba(106,176,212,0.15);
+    --li-white: #a8c4c4;
+    --li-glow: rgba(168,196,196,0.15);
+    --ichi-amber: #d4a44c;
+    --ichi-glow: rgba(212,164,76,0.15);
+    --system: #8888bb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    overflow: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  .screen.active { opacity: 1; pointer-events: all; }
+
+  /* ── TYPEWRITER ── */
+  .typewriter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--system);
+    line-height: 2;
+    text-align: center;
+    max-width: 380px;
+    white-space: pre-wrap;
+  }
+  .typewriter .error { color: #cc6666; }
+  .typewriter .dim { color: var(--muted); }
+
+  /* ── CURSOR ── */
+  .cursor::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── TITLE SCREEN ── */
+  #screen-title { background: var(--black); }
+  .title-zh {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(28px, 8vw, 48px);
+    font-weight: 300;
+    color: var(--white);
+    letter-spacing: 0.3em;
+    margin-bottom: 8px;
+  }
+  .title-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    margin-bottom: 48px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 10px 28px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.3s;
+    margin: 6px;
+  }
+  .btn:hover {
+    border-color: var(--system);
+    color: var(--white);
+    background: rgba(136,136,187,0.08);
+  }
+  .btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .btn.xu { border-color: var(--xu-blue); color: var(--xu-blue); }
+  .btn.xu:hover { background: var(--xu-glow); }
+  .btn.li { border-color: var(--li-white); color: var(--li-white); }
+  .btn.li:hover { background: var(--li-glow); }
+  .btn.ichi { border-color: var(--ichi-amber); color: var(--ichi-amber); }
+  .btn.ichi:hover { background: var(--ichi-glow); }
+  .btn.primary {
+    border-color: var(--system);
+    color: var(--white);
+    background: rgba(136,136,187,0.12);
+  }
+  .btn.primary:hover { background: rgba(136,136,187,0.22); }
+
+  /* ── INTRO SCREEN ── */
+  #screen-intro { background: var(--black); }
+
+  /* ── HUB SCREEN ── */
+  #screen-hub { background: var(--deep); }
+  .hub-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  .doors {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+  .door {
+    width: 100px;
+    border: 1px solid var(--border);
+    padding: 20px 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .door:hover { border-color: var(--dim); background: rgba(255,255,255,0.02); }
+  .door.xu-door { border-color: var(--xu-blue); }
+  .door.xu-door:hover { background: var(--xu-glow); }
+  .door.li-door { border-color: var(--li-white); }
+  .door.li-door:hover { background: var(--li-glow); }
+  .door.ichi-door { border-color: var(--ichi-amber); }
+  .door.ichi-door:hover { background: var(--ichi-glow); }
+  .door.completed::after {
+    content: '✓';
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 11px;
+    color: #66cc88;
+  }
+  .door.locked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .door-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .door-char {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    font-weight: 300;
+  }
+  .xu-door .door-char { color: var(--xu-blue); }
+  .li-door .door-char { color: var(--li-white); }
+  .ichi-door .door-char { color: var(--ichi-amber); }
+
+  /* ── ROOM SCREENS ── */
+  .room-screen {
+    background: var(--deep);
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 32px 24px 80px;
+  }
+  .room-header {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .room-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+  .back-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    padding: 4px 8px;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  .room-content {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ── DOCUMENT ── */
+  .document {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: var(--text);
+  }
+  .doc-title {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .redacted {
+    background: var(--dim);
+    color: var(--dim);
+    padding: 0 2px;
+    border-radius: 2px;
+    cursor: default;
+    user-select: none;
+  }
+  .blank {
+    display: inline-block;
+    min-width: 80px;
+    border-bottom: 1px solid var(--muted);
+    color: var(--system);
+    font-style: italic;
+    padding: 0 4px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .blank:hover { border-color: var(--system); }
+  .blank.filled {
+    color: var(--bright);
+    border-color: #66cc88;
+    cursor: default;
+  }
+
+  /* ── DIALOGUE ── */
+  .dialogue-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .dialogue-speaker {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .dialogue-speaker.xu { color: var(--xu-blue); }
+  .dialogue-speaker.li { color: var(--li-white); }
+  .dialogue-speaker.ichi { color: var(--ichi-amber); }
+  .dialogue-text {
+    font-size: 14px;
+    line-height: 1.9;
+    font-weight: 300;
+  }
+  .dialogue-aside {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  /* ── OPTIONS ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .opt {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 10px 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  .opt:hover { border-color: var(--muted); background: rgba(255,255,255,0.02); }
+  .opt.correct { border-color: #66cc88; color: #66cc88; }
+  .opt.wrong { border-color: #cc6666; color: #cc6666; }
+  .opt:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── HINT ── */
+  .hint-box {
+    background: rgba(136,136,187,0.06);
+    border-left: 2px solid var(--system);
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 12px;
+    color: var(--system);
+    font-family: 'Share Tech Mono', monospace;
+    display: none;
+  }
+  .hint-box.show { display: block; }
+
+  /* ── FRAGMENT ── */
+  .fragment-card {
+    border: 1px solid #66cc88;
+    background: rgba(102,204,136,0.05);
+    padding: 20px;
+    text-align: center;
+    margin: 24px 0;
+  }
+  .fragment-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: #66cc88;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+  .fragment-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--white);
+  }
+
+  /* ── FINAL SCREEN ── */
+  #screen-final { background: var(--deep); }
+  .final-doors {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 32px 0;
+  }
+
+  /* ── ENDING SCREENS ── */
+  .ending-screen {
+    background: var(--deep);
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 48px 24px 80px;
+  }
+  .ending-content {
+    width: 100%; max-width: 400px;
+    margin: 0 auto;
+  }
+  .ending-char {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ending-char.xu { color: var(--xu-blue); }
+  .ending-char.li { color: var(--li-white); }
+  .ending-char.ichi { color: var(--ichi-amber); }
+  .ending-line {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 2.2;
+    margin-bottom: 12px;
+    color: var(--bright);
+  }
+  .ending-aside {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+
+  /* ── TRUE ENDING ── */
+  #screen-true { background: var(--black); text-align: center; }
+  .true-broadcast {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--system);
+    line-height: 2.4;
+    max-width: 340px;
+    text-align: left;
+    margin-bottom: 40px;
+  }
+  .final-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: clamp(24px, 7vw, 40px);
+    font-weight: 300;
+    color: var(--white);
+    letter-spacing: 0.3em;
+    margin-top: 16px;
+  }
+
+  /* ── INPUT ── */
+  .code-input-wrap {
+    margin: 20px 0;
+    text-align: center;
+  }
+  .code-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--system);
+    color: var(--white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    text-align: center;
+    width: 120px;
+    padding: 8px 4px;
+    outline: none;
+    letter-spacing: 0.3em;
+  }
+  .code-input::placeholder { color: var(--dim); }
+
+  /* ── SYSTEM MSG ── */
+  .system-msg {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--system);
+    text-align: center;
+    letter-spacing: 0.1em;
+    padding: 12px;
+    margin: 8px 0;
+  }
+  .system-msg.error { color: #cc6666; }
+  .system-msg.success { color: #66cc88; }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .progress-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.5s;
+  }
+  .progress-dot.done { background: #66cc88; }
+
+  /* ── SCROLL ── */
+  .room-screen::-webkit-scrollbar { width: 4px; }
+  .room-screen::-webkit-scrollbar-track { background: transparent; }
+  .room-screen::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* ── ITEMS (一織) ── */
+  .items-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .item-card {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
+    background: transparent;
+  }
+  .item-card:hover { border-color: var(--ichi-amber); color: var(--ichi-amber); background: var(--ichi-glow); }
+  .item-card.found { border-color: #66cc88; color: #66cc88; }
+
+  .item-detail {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin: 12px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    display: none;
+  }
+  .item-detail.show { display: block; }
+
+  /* ── LETTER-ORDER ── */
+  .letter-slots {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    justify-content: center;
+  }
+  .letter-slot {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .letter-slot:hover { border-color: var(--ichi-amber); }
+  .letter-slot.placed { border-color: #66cc88; color: #66cc88; }
+
+  .letter-pool {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    justify-content: center;
+  }
+  .letter-tile {
+    width: 32px; height: 32px;
+    border: 1px solid var(--ichi-amber);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    color: var(--ichi-amber);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--ichi-glow);
+  }
+  .letter-tile:hover { background: rgba(212,164,76,0.3); }
+  .letter-tile.used { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  /* fade in anim */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeIn 0.5s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- ═══ TITLE ═══ -->
+<div class="screen active" id="screen-title">
+  <div class="typewriter" id="title-type"></div>
+  <div id="title-reveal" style="text-align:center;display:none;">
+    <div class="title-zh">查無此日</div>
+    <div class="title-sub">DATE NOT FOUND</div>
+    <button class="btn primary" onclick="goIntro()">登入列車系統</button>
+  </div>
+</div>
+
+<!-- ═══ INTRO ═══ -->
+<div class="screen" id="screen-intro">
+  <div class="typewriter" id="intro-type"></div>
+  <button class="btn primary" id="intro-next" style="display:none;margin-top:32px;" onclick="goHub()">進入列車</button>
+</div>
+
+<!-- ═══ HUB ═══ -->
+<div class="screen" id="screen-hub">
+  <div class="hub-status" id="hub-status">
+    <span class="typewriter">系統偵測中……  碎片回收：<span id="frag-count">0</span> / 3</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-dot" id="dot-xu"></div>
+    <div class="progress-dot" id="dot-li"></div>
+    <div class="progress-dot" id="dot-ichi"></div>
+  </div>
+  <div class="doors">
+    <div class="door xu-door" id="door-xu" onclick="enterRoom('xu')">
+      <div class="door-label">M 車廂</div>
+      <div class="door-char">許墨</div>
+    </div>
+    <div class="door li-door" id="door-li" onclick="enterRoom('li')">
+      <div class="door-label">L 車廂</div>
+      <div class="door-char">黎深</div>
+    </div>
+    <div class="door ichi-door" id="door-ichi" onclick="enterRoom('ichi')">
+      <div class="door-label">I 車廂</div>
+      <div class="door-char">一織</div>
+    </div>
+  </div>
+  <div class="system-msg" id="hub-msg">選擇一節車廂開始調查。</div>
+</div>
+
+<!-- ═══ XU ROOM ═══ -->
+<div class="screen room-screen" id="screen-xu">
+  <div class="room-header" style="max-width:480px;width:100%;">
+    <div class="room-title" style="color:var(--xu-blue)">M 車廂 — 許墨</div>
+    <button class="back-btn" onclick="goHub()">← 返回</button>
+  </div>
+  <div class="room-content" id="xu-content"></div>
+</div>
+
+<!-- ═══ LI ROOM ═══ -->
+<div class="screen room-screen" id="screen-li">
+  <div class="room-header" style="max-width:480px;width:100%;">
+    <div class="room-title" style="color:var(--li-white)">L 車廂 — 黎深</div>
+    <button class="back-btn" onclick="goHub()">← 返回</button>
+  </div>
+  <div class="room-content" id="li-content"></div>
+</div>
+
+<!-- ═══ ICHI ROOM ═══ -->
+<div class="screen room-screen" id="screen-ichi">
+  <div class="room-header" style="max-width:480px;width:100%;">
+    <div class="room-title" style="color:var(--ichi-amber)">I 車廂 — 和泉一織</div>
+    <button class="back-btn" onclick="goHub()">← 返回</button>
+  </div>
+  <div class="room-content" id="ichi-content"></div>
+</div>
+
+<!-- ═══ FINAL DOOR ═══ -->
+<div class="screen" id="screen-final">
+  <div class="typewriter" style="margin-bottom:24px;text-align:center;">
+三組記憶碎片已全數回收。<br><br>
+最終確認所需。
+  </div>
+  <div class="code-input-wrap">
+    <div class="system-msg">今天最重要的人是誰？</div>
+    <input class="code-input" id="final-input" placeholder="___" maxlength="4" autofocus>
+  </div>
+  <div class="system-msg error" id="final-error" style="display:none">身份不符。請再試一次。</div>
+  <button class="btn primary" onclick="checkFinal()">確認</button>
+</div>
+
+<!-- ═══ ENDING SELECT ═══ -->
+<div class="screen" id="screen-endings">
+  <div class="typewriter" style="text-align:center;margin-bottom:8px;">
+列車已找到方向。<br><br>
+三位乘客各自留了一樣東西。
+  </div>
+  <div class="system-msg" style="margin-bottom:8px;">你決定先打開哪一個？</div>
+  <div class="final-doors">
+    <div class="door xu-door" id="end-door-xu" onclick="goEnding('xu')">
+      <div class="door-label">許墨</div>
+      <div class="door-char" style="font-size:14px">留言</div>
+    </div>
+    <div class="door li-door" id="end-door-li" onclick="goEnding('li')">
+      <div class="door-label">黎深</div>
+      <div class="door-char" style="font-size:14px">留言</div>
+    </div>
+    <div class="door ichi-door" id="end-door-ichi" onclick="goEnding('ichi')">
+      <div class="door-label">一織</div>
+      <div class="door-char" style="font-size:14px">留言</div>
+    </div>
+  </div>
+  <div class="system-msg" id="endings-hint"></div>
+</div>
+
+<!-- ═══ ENDING XU ═══ -->
+<div class="screen ending-screen" id="screen-end-xu">
+  <div class="ending-content">
+    <div class="ending-char xu">— 許 墨 —</div>
+    <div class="ending-line">「實驗已經結束了。」</div>
+    <div class="ending-line">「但有一組數據我沒有刪除。」</div>
+    <div class="ending-aside">（轉過來）</div>
+    <div class="ending-line">「是你出現在這裡的次數。」</div>
+    <div class="ending-line">「遠超出實驗所需的變數範圍。」</div>
+    <div class="ending-line">「……這讓我很困擾。」</div>
+    <div class="ending-aside">（極低聲）</div>
+    <div class="ending-line">「生日快樂，丘。」</div>
+    <div class="ending-line">「希望今年，你還是會繼續出現在我的數據裡。」</div>
+    <hr class="divider">
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn xu" onclick="backToEndings('xu')">← 返回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ENDING LI ═══ -->
+<div class="screen ending-screen" id="screen-end-li">
+  <div class="ending-content">
+    <div class="ending-char li">— 黎 深 —</div>
+    <div class="ending-line">「我重新評估了一下。」</div>
+    <div class="ending-line">「之前說無藥可解。」</div>
+    <div class="ending-aside">（停頓）</div>
+    <div class="ending-line">「……那是因為我沒有認真找。」</div>
+    <div class="ending-line">「正確的診斷是——」</div>
+    <div class="ending-aside">（看著你）</div>
+    <div class="ending-line">「你這個人，有讓我想繼續研究的必要。」</div>
+    <div class="ending-aside">（轉回去，極小聲）</div>
+    <div class="ending-line">「生日快樂。」</div>
+    <div class="ending-line">「今年也不許生病。」</div>
+    <div class="ending-line">「我說的。」</div>
+    <hr class="divider">
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn li" onclick="backToEndings('li')">← 返回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ENDING ICHI ═══ -->
+<div class="screen ending-screen" id="screen-end-ichi">
+  <div class="ending-content">
+    <div class="ending-char ichi">— 和泉一織 —</div>
+    <div class="ending-line">「你知道我為什麼沒把信寫完嗎。」</div>
+    <div class="ending-aside">（沒等你回答）</div>
+    <div class="ending-line">「因為我想說的那句話，」</div>
+    <div class="ending-line">「寫出來就變成很蠢的東西了。」</div>
+    <div class="ending-aside">（翻白眼，但聲音很平靜）</div>
+    <div class="ending-line">「所以我決定——」</div>
+    <div class="ending-line">「親自說。」</div>
+    <div class="ending-aside">（停頓）</div>
+    <div class="ending-line">「今天是你的生日。」</div>
+    <div class="ending-line">「所有的追光都應該打在你身上。」</div>
+    <div class="ending-aside">（頓很久，很小聲）</div>
+    <div class="ending-line">「……這種話讓我說真的很噁心。」</div>
+    <div class="ending-line">「但生日快樂，丘。」</div>
+    <div class="ending-line">「明年也讓我繼續幫你記著。」</div>
+    <hr class="divider">
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn ichi" onclick="backToEndings('ichi')">← 返回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRUE ENDING ═══ -->
+<div class="screen" id="screen-true">
+  <div class="true-broadcast" id="true-type"></div>
+  <div class="final-title" id="true-title" style="display:none;opacity:0;transition:opacity 1.5s;">生日快樂</div>
+</div>
+
+<script>
+// ── STATE ──
+const STATE = {
+  xuDone: false,
+  liDone: false,
+  ichiDone: false,
+  endingsSeen: new Set(),
+  xuQ: [false, false, false],
+  xuBlanks: [false, false, false],
+  liQ: [false, false, false],
+  ichiItems: [false, false, false, false, false],
+  ichiLetters: [],
+  ichiLetterDone: false,
+};
+
+function saveState() {
+  localStorage.setItem('qwx_state', JSON.stringify({
+    xuDone: STATE.xuDone,
+    liDone: STATE.liDone,
+    ichiDone: STATE.ichiDone,
+    endingsSeen: [...STATE.endingsSeen],
+  }));
+}
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('qwx_state') || '{}');
+    if (s.xuDone) STATE.xuDone = true;
+    if (s.liDone) STATE.liDone = true;
+    if (s.ichiDone) STATE.ichiDone = true;
+    if (s.endingsSeen) STATE.endingsSeen = new Set(s.endingsSeen);
+  } catch(e) {}
+}
+
+// ── SCREEN TRANSITIONS ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (el && el.classList.contains('room-screen')) el.scrollTop = 0;
+  if (el && el.classList.contains('ending-screen')) el.scrollTop = 0;
+}
+
+// ── TYPEWRITER ──
+function typeText(el, text, speed, cb) {
+  let i = 0;
+  el.textContent = '';
+  function next() {
+    if (i < text.length) {
+      el.textContent += text[i++];
+      setTimeout(next, speed);
+    } else if (cb) cb();
+  }
+  next();
+}
+
+// ── TITLE ──
+const titleLines = `系統啟動中……
+
+日期查詢：今日
+
+ERROR — 查無此日
+ERROR — 查無此日
+ERROR — 查無此日`;
+
+window.onload = function() {
+  loadState();
+  const el = document.getElementById('title-type');
+  typeText(el, titleLines, 28, () => {
+    setTimeout(() => {
+      el.style.display = 'none';
+      const rev = document.getElementById('title-reveal');
+      rev.style.display = 'block';
+      rev.classList.add('fade-in');
+    }, 600);
+  });
+};
+
+function goIntro() {
+  showScreen('screen-intro');
+  const introText = `偵測到乘客登入。
+
+今日應存在一個重要日期。
+資料遭人為竄改。
+
+建議乘客展開調查。
+
+前方共三節車廂。
+三名嫌疑人。
+
+列車將在你找回遺失的日期後
+重新出發。`;
+  const el = document.getElementById('intro-type');
+  typeText(el, introText, 22, () => {
+    setTimeout(() => {
+      document.getElementById('intro-next').style.display = 'inline-block';
+    }, 400);
+  });
+}
+
+// ── HUB ──
+function goHub() {
+  updateHub();
+  showScreen('screen-hub');
+  checkAllDone();
+}
+
+function updateHub() {
+  const count = [STATE.xuDone, STATE.liDone, STATE.ichiDone].filter(Boolean).length;
+  document.getElementById('frag-count').textContent = count;
+  document.getElementById('dot-xu').classList.toggle('done', STATE.xuDone);
+  document.getElementById('dot-li').classList.toggle('done', STATE.liDone);
+  document.getElementById('dot-ichi').classList.toggle('done', STATE.ichiDone);
+  document.getElementById('door-xu').classList.toggle('completed', STATE.xuDone);
+  document.getElementById('door-li').classList.toggle('completed', STATE.liDone);
+  document.getElementById('door-ichi').classList.toggle('completed', STATE.ichiDone);
+}
+
+function checkAllDone() {
+  if (STATE.xuDone && STATE.liDone && STATE.ichiDone) {
+    document.getElementById('hub-msg').textContent = '三組訊號已完整。請前往最終確認。';
+    const finalBtn = document.getElementById('hub-final-btn');
+    if (!finalBtn) {
+      const btn = document.createElement('button');
+      btn.id = 'hub-final-btn';
+      btn.className = 'btn primary';
+      btn.textContent = '→ 最終確認';
+      btn.onclick = () => showScreen('screen-final');
+      document.getElementById('screen-hub').appendChild(btn);
+    }
+  }
+}
+
+function enterRoom(room) {
+  if (room === 'xu') buildXuRoom();
+  if (room === 'li') buildLiRoom();
+  if (room === 'ichi') buildIchiRoom();
+  showScreen('screen-' + room);
+}
+
+// ══════════════════════════════════
+// XU ROOM
+// ══════════════════════════════════
+function buildXuRoom() {
+  const c = document.getElementById('xu-content');
+  if (STATE.xuDone) {
+    c.innerHTML = `
+      <div class="dialogue-box">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「你已經找到你需要的了。」</div>
+        <div class="dialogue-aside">（視線落在那份文件上）</div>
+      </div>
+      <div class="fragment-card">
+        <div class="fragment-label">記憶碎片 #01 已取回</div>
+        <div class="fragment-name">「值得記住的日期」</div>
+      </div>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker xu">許 墨</div>
+      <div class="dialogue-text">「你進來了。」<br>「這裡的資料不對外開放。」</div>
+      <div class="dialogue-aside">（停）</div>
+      <div class="dialogue-text">「……不過，既然你已經在這裡了。」</div>
+    </div>
+
+    <div class="document fade-in" style="margin-top:16px;">
+      <div class="doc-title">實驗紀錄 #0000</div>
+      研究主題：<span class="blank" id="xu-b1" onclick="showXuOptions(1)">${STATE.xuBlanks[0] ? '<span style="color:var(--bright)">日期</span>' : '___'}</span> 對記憶迴路的影響<br><br>
+      假設：當受試者意識到<span class="blank" id="xu-b2" onclick="showXuOptions(2)">${STATE.xuBlanks[1] ? '<span style="color:var(--bright)">情緒</span>' : '___'}</span>的存在時，<br>
+      杏仁核活化程度將顯著上升。<br><br>
+      備註刪除理由：<span class="blank" id="xu-b3" onclick="showXuOptions(3)">${STATE.xuBlanks[2] ? '<span style="color:var(--bright)">難以量化</span>' : '___'}</span>
+    </div>
+
+    <div class="system-msg" style="font-size:11px;margin-bottom:8px;">詢問許墨以取得線索，再填寫文件空格。</div>
+
+    <div class="options" id="xu-questions">
+      <button class="opt" id="xu-q1" onclick="xuAnswer(1)" ${STATE.xuQ[0]?'disabled':''}>「這份文件在研究什麼？」</button>
+      <button class="opt" id="xu-q2" onclick="xuAnswer(2)" ${STATE.xuQ[1]?'disabled':''}>「為什麼資料被遮住？」</button>
+      <button class="opt" id="xu-q3" onclick="xuAnswer(3)" ${STATE.xuQ[2]?'disabled':''}>「是你刪除的嗎？」</button>
+    </div>
+
+    <div id="xu-response"></div>
+    <div id="xu-hint" class="hint-box"></div>
+    <div id="xu-final-reveal" style="display:none;"></div>
+  `;
+  updateXuBlanks();
+}
+
+function xuAnswer(q) {
+  STATE.xuQ[q-1] = true;
+  document.getElementById('xu-q'+q).disabled = true;
+  document.getElementById('xu-q'+q).classList.add('correct');
+  const resp = document.getElementById('xu-response');
+  const hint = document.getElementById('xu-hint');
+
+  if (q === 1) {
+    resp.innerHTML = `
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「記憶。」<br>「人對某些事情的記憶，會比其他事情更難消除。」</div>
+      </div>
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「因為那件事發生的時候，<span style="color:var(--xu-blue)">情緒</span>也同時被記錄進去了。」<br>「理性沒有辦法單獨刪除情緒的部分。」</div>
+        <div class="dialogue-aside">（看了一眼被遮住的文件）「……這是純粹的學術解釋。」</div>
+      </div>`;
+    hint.textContent = '提示：假設欄的空格答案與情緒有關。';
+    hint.classList.add('show');
+  } else if (q === 2) {
+    resp.innerHTML = `
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「保密協議。」<br>「部分實驗涉及特定對象的個人資訊。」</div>
+      </div>
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「出現頻率過高的變數，有時候比結論本身更<span style="color:var(--xu-blue)">難以量化</span>。」</div>
+        <div class="dialogue-aside">（輕描淡寫）</div>
+      </div>`;
+    hint.textContent = '提示：備註欄刪除理由與「量化」有關。';
+    hint.classList.add('show');
+  } else {
+    resp.innerHTML = `
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「部分是。」<br>「有些資料，留著的意義不大。」</div>
+      </div>
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker xu">許 墨</div>
+        <div class="dialogue-text">「和特定<span style="color:var(--xu-blue)">日期</span>相關的。」<br>「日期本身沒有意義。是那天發生的事給了它重量。」</div>
+        <div class="dialogue-aside">（轉開視線）「……刪掉日期，不代表刪掉了事情本身。」</div>
+      </div>`;
+    hint.textContent = '提示：研究主題與「日期」有關。';
+    hint.classList.add('show');
+  }
+  updateXuBlanks();
+}
+
+function showXuOptions(slot) {
+  if (STATE.xuBlanks[slot-1]) return;
+  const options = {
+    1: ['日期','記憶','情緒'],
+    2: ['情緒','邏輯','時間'],
+    3: ['難以量化','資料損毀','無從確認'],
+  };
+  const correct = {1:'日期', 2:'情緒', 3:'難以量化'};
+  const resp = document.getElementById('xu-response');
+  const opts = options[slot].map(o =>
+    `<button class="opt" onclick="xuFillBlank(${slot},'${o}','${correct[slot]}')">${o}</button>`
+  ).join('');
+  resp.innerHTML = `<div class="options fade-in">${opts}</div>`;
+}
+
+function xuFillBlank(slot, val, correct) {
+  const resp = document.getElementById('xu-response');
+  if (val === correct) {
+    STATE.xuBlanks[slot-1] = true;
+    resp.innerHTML = `<div class="system-msg success">已填入：${val}</div>`;
+    updateXuBlanks();
+    checkXuComplete();
+  } else {
+    resp.innerHTML = `<div class="system-msg error">數據不符。請重新查閱線索。</div>`;
+  }
+}
+
+function updateXuBlanks() {
+  const answers = ['日期','情緒','難以量化'];
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('xu-b'+i);
+    if (el && STATE.xuBlanks[i-1]) {
+      el.innerHTML = `<span style="color:var(--bright)">${answers[i-1]}</span>`;
+      el.classList.add('filled');
+    }
+  });
+}
+
+function checkXuComplete() {
+  if (STATE.xuBlanks[0] && STATE.xuBlanks[1] && STATE.xuBlanks[2]) {
+    setTimeout(() => {
+      const fr = document.getElementById('xu-final-reveal');
+      fr.style.display = 'block';
+      fr.innerHTML = `
+        <div class="document fade-in" style="border-color:var(--xu-blue)">
+          <div class="doc-title" style="color:var(--xu-blue)">附記（解密）</div>
+          「我想讓某年某月某日<br>永遠存在於某人的記憶迴路裡。<br><br>這不在實驗範圍內。<br>這是我個人的事。」
+        </div>
+        <div class="dialogue-box fade-in">
+          <div class="dialogue-speaker xu">許 墨</div>
+          <div class="dialogue-text">「……你不需要把這段也記下來。」</div>
+          <div class="dialogue-aside">（停頓很久）</div>
+          <div class="dialogue-text">「偏偏是最難刪除的那種。」</div>
+        </div>
+        <div class="fragment-card fade-in">
+          <div class="fragment-label">記憶碎片 #01 已取回</div>
+          <div class="fragment-name">「值得記住的日期」</div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="btn xu" onclick="completeRoom('xu')">返回列車</button>
+        </div>`;
+    }, 400);
+    STATE.xuDone = true;
+    saveState();
+  }
+}
+
+// ══════════════════════════════════
+// LI ROOM
+// ══════════════════════════════════
+function buildLiRoom() {
+  const c = document.getElementById('li-content');
+  if (STATE.liDone) {
+    c.innerHTML = `
+      <div class="dialogue-box">
+        <div class="dialogue-speaker li">黎 深</div>
+        <div class="dialogue-text">「……你已經看完了。」</div>
+        <div class="dialogue-aside">（背對你）</div>
+      </div>
+      <div class="fragment-card">
+        <div class="fragment-label">記憶碎片 #02 已取回</div>
+        <div class="fragment-name">「無藥可解的日子」</div>
+      </div>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker li">黎 深</div>
+      <div class="dialogue-text">「不是探病時間。」</div>
+      <div class="dialogue-aside">（沒有轉身）</div>
+      <div class="dialogue-text">「……但你都進來了。」</div>
+    </div>
+
+    <div class="document fade-in">
+      <div class="doc-title">病歷 — 部分封存</div>
+      患者主訴：<br>「今天應該是很重要的日子。但系統顯示查無此日。」<br><br>
+      醫師評估：<br>屬於資料 <span class="blank" id="li-b1">${STATE.liQ[0]?'<span style="color:var(--bright)">人為竄改</span>':'___'}</span>，非記憶損傷。<br><br>
+      處置建議：患者需 <span class="blank" id="li-b2">${STATE.liQ[1]?'<span style="color:var(--bright)">主動確認</span>':'___'}</span> 遺失日期。<br><br>
+      備註：此病歷部分頁面 <span class="blank" id="li-b3">${STATE.liQ[2]?'<span style="color:var(--bright)">被封存</span>':'___'}</span>。
+    </div>
+
+    <div class="system-msg" style="font-size:11px;">進行問診以填寫病歷空格。</div>
+
+    <div id="li-question-area"></div>
+    <div id="li-final-reveal" style="display:none;"></div>
+  `;
+
+  if (!STATE.liQ[0]) buildLiQ(1);
+  else if (!STATE.liQ[1]) buildLiQ(2);
+  else if (!STATE.liQ[2]) buildLiQ(3);
+  else checkLiComplete();
+}
+
+const liQuestions = [
+  {
+    q: '資料遺失的原因是？',
+    opts: ['系統故障','人為竄改','自然損耗'],
+    correct: '人為竄改',
+    wrongResp: {
+      '系統故障': '「系統不會無緣無故故障。」',
+      '自然損耗': '「時間會消磨很多東西。但不是這個。」',
+    },
+    correctResp: '「……嗯。」「有人刻意動過。」',
+    fill: '人為竄改',
+  },
+  {
+    q: '處置建議是什麼？',
+    opts: ['靜待系統修復','放棄尋找','主動找回遺失的資料'],
+    correct: '主動找回遺失的資料',
+    wrongResp: {
+      '靜待系統修復': '「等待不是治療。」',
+      '放棄尋找': '「……不建議。」',
+    },
+    correctResp: '「對。有些東西不去找，不會自己回來。」',
+    fill: '主動確認',
+  },
+  {
+    q: '備註欄說病歷部分頁面……？',
+    opts: ['損毀','被人藏起來了','從未存在'],
+    correct: '被人藏起來了',
+    wrongResp: {
+      '損毀': '「損毀的東西找不回來。這個還在。」',
+      '從未存在': '「存在過。我確定。」',
+    },
+    correctResp: '（第一次轉過來看你）「……你很快。」',
+    fill: '被封存',
+  },
+];
+
+function buildLiQ(n) {
+  const area = document.getElementById('li-question-area');
+  if (!area) return;
+  const q = liQuestions[n-1];
+  area.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker li">黎 深</div>
+      <div class="dialogue-text">「你要問什麼。說重點。」</div>
+    </div>
+    <div class="system-msg" style="text-align:left;padding-left:0;">${q.q}</div>
+    <div class="options">
+      ${q.opts.map(o => `<button class="opt" onclick="liAnswer(${n},'${o}')">${o}</button>`).join('')}
+    </div>
+    <div id="li-resp"></div>`;
+}
+
+function liAnswer(n, val) {
+  const q = liQuestions[n-1];
+  const resp = document.getElementById('li-resp');
+  if (val === q.correct) {
+    STATE.liQ[n-1] = true;
+    resp.innerHTML = `
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker li">黎 深</div>
+        <div class="dialogue-text">${q.correctResp}</div>
+      </div>
+      <div class="system-msg success">填入：${q.fill}</div>`;
+    // update blank
+    const blankEl = document.getElementById('li-b'+n);
+    if (blankEl) blankEl.innerHTML = `<span style="color:var(--bright)">${q.fill}</span>`;
+    setTimeout(() => {
+      if (n < 3) buildLiQ(n+1);
+      else checkLiComplete();
+    }, 1200);
+  } else {
+    resp.innerHTML = `
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker li">黎 深</div>
+        <div class="dialogue-text">${q.wrongResp[val]}</div>
+      </div>
+      <div class="system-msg error">診斷不符。請重新選擇。</div>`;
+    setTimeout(() => buildLiQ(n), 1500);
+  }
+}
+
+function checkLiComplete() {
+  const area = document.getElementById('li-question-area');
+  const fr = document.getElementById('li-final-reveal');
+  if (area) area.innerHTML = '';
+  if (fr) {
+    fr.style.display = 'block';
+    fr.innerHTML = `
+      <div class="document fade-in" style="border-color:var(--li-white)">
+        <div class="doc-title" style="color:var(--li-white)">封存頁面（已解鎖）</div>
+        封存原因：患者本人要求。<br><br>
+        封存內容：<br>「某年某月某日是我目前記錄到的<br>最難治療的症狀。<br>無藥可解。預後：不明。」<br><br>
+        <span style="color:var(--li-white)">附記（手寫）：「希望那天能永遠存在。」</span>
+      </div>
+      <div class="dialogue-box fade-in">
+        <div class="dialogue-speaker li">黎 深</div>
+        <div class="dialogue-text">「……這種字跡不應該出現在正式病歷裡。」</div>
+        <div class="dialogue-aside">（停頓）</div>
+        <div class="dialogue-text">「有些東西，銷毀了可惜。」</div>
+        <div class="dialogue-aside">（轉回去看窗外）「……就這樣。」</div>
+      </div>
+      <div class="fragment-card fade-in">
+        <div class="fragment-label">記憶碎片 #02 已取回</div>
+        <div class="fragment-name">「無藥可解的日子」</div>
+      </div>
+      <div style="text-align:center;margin-top:16px;">
+        <button class="btn li" onclick="completeRoom('li')">返回列車</button>
+      </div>`;
+    STATE.liDone = true;
+    saveState();
+  }
+}
+
+// ══════════════════════════════════
+// ICHI ROOM
+// ══════════════════════════════════
+const ICHI_ITEMS = [
+  { id: '排演表', emoji: '📋', found: false },
+  { id: '歌詞紙', emoji: '🎵', found: false },
+  { id: '留言板', emoji: '📌', found: false },
+  { id: '小包裝盒', emoji: '🎁', found: false },
+  { id: '一封信', emoji: '✉️', found: false },
+];
+
+const ICHI_DETAILS = {
+  '排演表': `演出曲目：████████<br>演出時間：████年某月某日<br><span style="color:var(--ichi-amber)">備注：這天不能出錯。</span>`,
+  '歌詞紙': `H a p p y <span style="color:var(--ichi-amber)">B _ R _ _ _ _ Y</span><br>to  y o u<br><br><span style="color:var(--muted)">（部分字母被撕掉了）</span>`,
+  '留言板': `[便利貼，字跡工整]<br><span style="color:var(--ichi-amber)">記得：B, I, R, T, H</span><br>——一織`,
+  '小包裝盒': `紙條：「還沒到時間。」<br><br><span style="color:var(--muted)">（盒子很輕。像是裝著什麼等待的東西。）</span>`,
+  '一封信': `信封上寫著「<span style="color:var(--ichi-amber)">丘</span>」。<br>信封沒有封口。<br>裡面的信紙是空白的。`,
+};
+
+const TARGET_WORD = 'BIRTHDAY';
+
+function buildIchiRoom() {
+  const c = document.getElementById('ichi-content');
+  if (STATE.ichiDone) {
+    c.innerHTML = `
+      <div class="dialogue-box">
+        <div class="dialogue-speaker ichi">和泉一織</div>
+        <div class="dialogue-text">「……你已經把信拿走了。」</div>
+        <div class="dialogue-aside">（沒有表情，但沒有把信要回來）</div>
+      </div>
+      <div class="fragment-card">
+        <div class="fragment-label">記憶碎片 #03 已取回</div>
+        <div class="fragment-name">「不能出錯的這一天」</div>
+      </div>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker ichi">和泉一織</div>
+      <div class="dialogue-text">「……你敲門了嗎。」</div>
+      <div class="dialogue-aside">（沒有等回答）</div>
+      <div class="dialogue-text">「算了。」</div>
+    </div>
+
+    <div class="system-msg" style="text-align:left;padding-left:0;font-size:11px;">後台散落著東西。點擊查看。</div>
+
+    <div class="items-grid" id="ichi-items">
+      ${ICHI_ITEMS.map(item => `
+        <button class="item-card ${STATE.ichiItems[ICHI_ITEMS.indexOf(item)]?'found':''}" 
+                id="item-${item.id}" onclick="ichiViewItem('${item.id}')">
+          ${item.emoji} ${item.id}
+        </button>`).join('')}
+    </div>
+
+    <div class="item-detail" id="ichi-detail"></div>
+
+    <div id="ichi-dialogue-area"></div>
+
+    <div id="ichi-letter-area" style="display:none;">
+      <div class="system-msg">歌詞紙上缺少的字母是什麼？</div>
+      <div class="system-msg" style="font-size:10px;color:var(--muted)">參考留言板的提示，按順序點擊字母拼出答案。</div>
+      <div class="letter-slots" id="letter-slots"></div>
+      <div class="letter-pool" id="letter-pool"></div>
+      <div id="ichi-letter-resp"></div>
+    </div>
+
+    <div id="ichi-final-reveal" style="display:none;"></div>
+  `;
+  checkIchiItemsFound();
+}
+
+function ichiViewItem(id) {
+  const det = document.getElementById('ichi-detail');
+  det.innerHTML = `<div class="doc-title">${id}</div>${ICHI_DETAILS[id]}`;
+  det.classList.add('show');
+
+  const idx = ICHI_ITEMS.findIndex(i => i.id === id);
+  if (idx >= 0) STATE.ichiItems[idx] = true;
+  const btn = document.getElementById('item-'+id);
+  if (btn) btn.classList.add('found');
+
+  checkIchiItemsFound();
+}
+
+function checkIchiItemsFound() {
+  const allFound = STATE.ichiItems.every(Boolean) || STATE.ichiItems.filter(Boolean).length >= 3;
+  if (allFound && !STATE.ichiLetterDone) {
+    const da = document.getElementById('ichi-dialogue-area');
+    if (da && da.innerHTML === '') {
+      da.innerHTML = `
+        <div class="dialogue-box fade-in">
+          <div class="dialogue-speaker ichi">和泉一織</div>
+          <div class="dialogue-text">「……你找完了？」</div>
+          <div class="dialogue-aside">（把手上的紙往背後一藏）</div>
+          <div class="dialogue-text">「那就自己想清楚吧。」</div>
+        </div>`;
+      setTimeout(() => buildIchiLetterPuzzle(), 800);
+    }
+  }
+}
+
+function buildIchiLetterPuzzle() {
+  const area = document.getElementById('ichi-letter-area');
+  if (!area) return;
+  area.style.display = 'block';
+
+  // Build slots
+  const slots = document.getElementById('letter-slots');
+  slots.innerHTML = TARGET_WORD.split('').map((_, i) =>
+    `<div class="letter-slot" id="slot-${i}" data-idx="${i}" data-val=""></div>`
+  ).join('');
+
+  // Build pool (shuffled)
+  const letters = TARGET_WORD.split('').sort(() => Math.random()-0.5);
+  const pool = document.getElementById('letter-pool');
+  pool.innerHTML = letters.map((l, i) =>
+    `<div class="letter-tile" id="tile-${i}" data-letter="${l}" onclick="ichiPickLetter(this)">${l}</div>`
+  ).join('');
+
+  STATE.ichiLetters = new Array(TARGET_WORD.length).fill('');
+}
+
+let ichiCurrentSlot = 0;
+
+function ichiPickLetter(tile) {
+  if (tile.classList.contains('used')) return;
+  const letter = tile.dataset.letter;
+
+  // find next empty slot
+  const slots = document.querySelectorAll('.letter-slot');
+  let placed = false;
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i].dataset.val === '') {
+      slots[i].dataset.val = letter;
+      slots[i].textContent = letter;
+      slots[i].classList.add('placed');
+      tile.classList.add('used');
+      placed = true;
+      break;
+    }
+  }
+
+  // check if all filled
+  const allFilled = [...slots].every(s => s.dataset.val !== '');
+  if (allFilled) {
+    const word = [...slots].map(s => s.dataset.val).join('');
+    if (word === TARGET_WORD) {
+      document.getElementById('ichi-letter-resp').innerHTML =
+        `<div class="system-msg success">正確。</div>`;
+      setTimeout(() => ichiLetterSuccess(), 800);
+    } else {
+      document.getElementById('ichi-letter-resp').innerHTML =
+        `<div class="dialogue-box fade-in"><div class="dialogue-speaker ichi">和泉一織</div><div class="dialogue-text">「……再想想。」</div><div class="dialogue-aside">（翻了個白眼）</div></div>`;
+      // reset after delay
+      setTimeout(() => {
+        slots.forEach(s => { s.dataset.val=''; s.textContent=''; s.classList.remove('placed'); });
+        document.querySelectorAll('.letter-tile').forEach(t => t.classList.remove('used'));
+        document.getElementById('ichi-letter-resp').innerHTML = '';
+      }, 1200);
+    }
+  }
+}
+
+function ichiLetterSuccess() {
+  STATE.ichiLetterDone = true;
+  const la = document.getElementById('ichi-letter-area');
+  if (la) la.style.display = 'none';
+
+  // Show input for name
+  const da = document.getElementById('ichi-dialogue-area');
+  da.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker ichi">和泉一織</div>
+      <div class="dialogue-text">「……你拼出來了。」</div>
+      <div class="dialogue-aside">（把背後的紙拿出來，不情願地展開）</div>
+    </div>
+    <div class="system-msg">這首歌是唱給誰的？</div>
+    <div class="code-input-wrap">
+      <input class="code-input" id="ichi-name-input" placeholder="___" maxlength="4" style="border-color:var(--ichi-amber)">
+    </div>
+    <div id="ichi-name-resp"></div>
+    <button class="btn ichi" onclick="checkIchiName()" style="display:block;margin:8px auto;">確認</button>
+  `;
+}
+
+function checkIchiName() {
+  const val = document.getElementById('ichi-name-input').value.trim();
+  if (val === '丘') {
+    document.getElementById('ichi-name-resp').innerHTML =
+      `<div class="system-msg success">正確。</div>`;
+    setTimeout(() => ichiComplete(), 800);
+  } else {
+    document.getElementById('ichi-name-resp').innerHTML =
+      `<div class="dialogue-box fade-in"><div class="dialogue-speaker ichi">和泉一織</div><div class="dialogue-text">「……不對。」</div></div>`;
+  }
+}
+
+function ichiComplete() {
+  const da = document.getElementById('ichi-dialogue-area');
+  da.innerHTML = '';
+  const fr = document.getElementById('ichi-final-reveal');
+  fr.style.display = 'block';
+  fr.innerHTML = `
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker ichi">和泉一織</div>
+      <div class="dialogue-text">「……生日快樂。」</div>
+      <div class="dialogue-aside">（停頓）</div>
+      <div class="dialogue-text">「這種話讓我唸出來，真的很噁心。」</div>
+    </div>
+    <div class="dialogue-box fade-in">
+      <div class="dialogue-speaker ichi">和泉一織</div>
+      <div class="dialogue-text">「因為你不會自己記得今天有多重要。」</div>
+      <div class="dialogue-aside">（站起來，背對你，把信推過來）</div>
+      <div class="dialogue-text">「……所以有人要幫你記著。」</div>
+    </div>
+    <div class="fragment-card fade-in">
+      <div class="fragment-label">記憶碎片 #03 已取回</div>
+      <div class="fragment-name">「不能出錯的這一天」</div>
+    </div>
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn ichi" onclick="completeRoom('ichi')">返回列車</button>
+    </div>`;
+  STATE.ichiDone = true;
+  saveState();
+}
+
+// ── COMPLETE ROOM ──
+function completeRoom(room) {
+  updateHub();
+  showScreen('screen-hub');
+  checkAllDone();
+}
+
+// ── FINAL DOOR ──
+function checkFinal() {
+  const val = document.getElementById('final-input').value.trim();
+  if (val === '丘') {
+    showScreen('screen-endings');
+    updateEndingsScreen();
+  } else {
+    document.getElementById('final-error').style.display = 'block';
+    setTimeout(() => document.getElementById('final-error').style.display = 'none', 2000);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const finalInput = document.getElementById('final-input');
+    const ichiInput = document.getElementById('ichi-name-input');
+    if (document.getElementById('screen-final').classList.contains('active')) checkFinal();
+    if (ichiInput && document.getElementById('screen-ichi').classList.contains('active')) checkIchiName();
+  }
+});
+
+// ── ENDINGS ──
+function updateEndingsScreen() {
+  const hint = document.getElementById('endings-hint');
+  const seen = STATE.endingsSeen.size;
+  if (seen === 0) hint.textContent = '選擇一個開始閱讀。';
+  else if (seen === 1) hint.textContent = `已閱讀 ${seen}/3。還有兩個在等你。`;
+  else if (seen === 2) hint.textContent = `已閱讀 ${seen}/3。最後一個。`;
+  else if (seen === 3) {
+    hint.textContent = '全部解鎖。真結局已開放。';
+    const trueBtn = document.getElementById('true-ending-btn');
+    if (!trueBtn) {
+      const btn = document.createElement('button');
+      btn.id = 'true-ending-btn';
+      btn.className = 'btn primary';
+      btn.textContent = '→ 最終廣播';
+      btn.onclick = goTrueEnding;
+      document.getElementById('screen-endings').appendChild(btn);
+    }
+  }
+  ['xu','li','ichi'].forEach(r => {
+    const d = document.getElementById('end-door-'+r);
+    if (d) d.classList.toggle('completed', STATE.endingsSeen.has(r));
+  });
+}
+
+function goEnding(room) {
+  STATE.endingsSeen.add(room);
+  saveState();
+  showScreen('screen-end-'+room);
+}
+
+function backToEndings(room) {
+  updateEndingsScreen();
+  showScreen('screen-endings');
+}
+
+// ── TRUE ENDING ──
+function goTrueEnding() {
+  showScreen('screen-true');
+  const el = document.getElementById('true-type');
+  const broadcastText = `日期還原完成。
+
+記錄：
+
+某年某月某日
+
+有三個人，
+
+把同一天藏起來，
+
+是因為他們都不想讓它消失。
+
+這不是bug。
+
+這是他們唯一會的方式。
+
+列車已抵達目的地。
+
+歡迎來到——
+
+丘的生日。`;
+  typeText(el, broadcastText, 35, () => {
+    setTimeout(() => {
+      const title = document.getElementById('true-title');
+      title.style.display = 'block';
+      setTimeout(() => { title.style.opacity = '1'; }, 100);
+    }, 800);
+  });
+}
+</script>
+</body>
+</html>
+HTMLEOF
+echo "done"
