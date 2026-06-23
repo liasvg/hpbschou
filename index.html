@@ -57,13 +57,11 @@
   /* ── CHARACTER LAYER ── */
   #char-layer {
     position: fixed;
-    right: 0;
-    bottom: 0;
-    height: 90%;
-    width: auto;
-    max-width: 50%;
-    object-fit: contain;
-    object-position: right bottom;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
     opacity: 0;
     transition: opacity 0.8s ease;
     z-index: 2;
@@ -266,11 +264,11 @@
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
-    background: rgba(10,10,15,0.8);
+    background: rgba(10,10,15,0.85);
     padding: 20px;
     border-radius: 4px;
     position: relative;
-    z-index: 102;
+    z-index: 103;
   }
 
   /* ── DOCUMENT ── */
@@ -458,7 +456,7 @@
   }
 
   /* ── TRUE ENDING ── */
-  #screen-true { background: rgba(10,10,15,0.95); text-align: center; z-index: 101; }
+  #screen-true { background: rgba(10,10,15,0.6); text-align: center; z-index: 101; }
   .true-broadcast {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px;
@@ -467,6 +465,9 @@
     max-width: 340px;
     text-align: left;
     margin-bottom: 40px;
+    background: rgba(10,10,15,0.7);
+    padding: 20px 24px;
+    border-radius: 4px;
   }
   .final-title {
     font-family: 'Noto Serif TC', serif;
@@ -973,7 +974,7 @@ function goIntro() {
 function goHub() {
   updateHub();
   showScreen('screen-hub');
-  hideBG();
+  setBG('b1.png');
   hideChar();
   playMysteryBGM();
   checkAllDone();
@@ -1006,8 +1007,8 @@ function checkAllDone() {
 }
 
 function enterRoom(room) {
-  setBG('b1.png');
-  
+  hideBG();
+
   if (room === 'xu') {
     setChar('c1.png');
     buildXuRoom();
@@ -1609,7 +1610,7 @@ document.addEventListener('keydown', e => {
 // ── ENDINGS ──
 function updateEndingsScreen() {
   setBG('b2.png');
-  setChar('');
+  hideChar();
   const hint = document.getElementById('endings-hint');
   const seen = STATE.endingsSeen.size;
   if (seen === 0) hint.textContent = '選擇一個開始閱讀。';
