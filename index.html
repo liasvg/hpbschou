@@ -41,6 +41,39 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
     overflow: hidden;
   }
 
+  /* ── BACKGROUND LAYER ── */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    z-index: -1;
+  }
+  .bg-layer.active {
+    opacity: 1;
+  }
+
+  /* ── CHARACTER LAYER ── */
+  .char-layer {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    max-width: 50%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right bottom;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .char-layer.active {
+    opacity: 1;
+  }
+
   /* ── SCREENS ── */
   .screen {
     position: fixed; inset: 0;
@@ -49,6 +82,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
     padding: 24px;
     opacity: 0; pointer-events: none;
     transition: opacity 0.8s ease;
+    z-index: 100;
   }
   .screen.active { opacity: 1; pointer-events: all; }
 
@@ -73,7 +107,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
   @keyframes blink { 50% { opacity: 0; } }
 
   /* ── TITLE SCREEN ── */
-  #screen-title { background: var(--black); }
+  #screen-title { background: rgba(10,10,15,0.95); z-index: 101; }
   .title-zh {
     font-family: 'Noto Serif TC', serif;
     font-size: clamp(28px, 8vw, 48px);
@@ -103,6 +137,8 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
     letter-spacing: 0.1em;
     transition: all 0.3s;
     margin: 6px;
+    position: relative;
+    z-index: 102;
   }
   .btn:hover {
     border-color: var(--system);
@@ -127,10 +163,10 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
   .btn.primary:hover { background: rgba(136,136,187,0.22); }
 
   /* ── INTRO SCREEN ── */
-  #screen-intro { background: var(--black); }
+  #screen-intro { background: rgba(15,15,26,0.95); z-index: 101; }
 
   /* ── HUB SCREEN ── */
-  #screen-hub { background: var(--deep); }
+  #screen-hub { background: rgba(15,15,26,0.95); z-index: 101; }
   .hub-status {
     font-family: 'Share Tech Mono', monospace;
     font-size: 11px;
@@ -188,10 +224,11 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 
   /* ── ROOM SCREENS ── */
   .room-screen {
-    background: var(--deep);
+    background: transparent;
     overflow-y: auto;
     justify-content: flex-start;
     padding: 32px 24px 80px;
+    z-index: 101;
   }
   .room-header {
     width: 100%;
@@ -202,6 +239,10 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: rgba(10,10,15,0.8);
+    position: relative;
+    z-index: 102;
+    border-radius: 4px;
   }
   .room-title {
     font-family: 'Share Tech Mono', monospace;
@@ -225,6 +266,11 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
+    background: rgba(10,10,15,0.8);
+    padding: 20px;
+    border-radius: 4px;
+    position: relative;
+    z-index: 102;
   }
 
   /* ── DOCUMENT ── */
@@ -359,7 +405,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
   }
 
   /* ── FINAL SCREEN ── */
-  #screen-final { background: var(--deep); }
+  #screen-final { background: rgba(15,15,26,0.95); z-index: 101; }
   .final-doors {
     display: flex;
     gap: 16px;
@@ -370,14 +416,20 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 
   /* ── ENDING SCREENS ── */
   .ending-screen {
-    background: var(--deep);
+    background: transparent;
     overflow-y: auto;
     justify-content: flex-start;
     padding: 48px 24px 80px;
+    z-index: 101;
   }
   .ending-content {
     width: 100%; max-width: 400px;
     margin: 0 auto;
+    background: rgba(10,10,15,0.85);
+    padding: 24px;
+    border-radius: 4px;
+    position: relative;
+    z-index: 102;
   }
   .ending-char {
     font-family: 'Share Tech Mono', monospace;
@@ -406,7 +458,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
   }
 
   /* ── TRUE ENDING ── */
-  #screen-true { background: var(--black); text-align: center; }
+  #screen-true { background: rgba(10,10,15,0.95); text-align: center; z-index: 101; }
   .true-broadcast {
     font-family: 'Share Tech Mono', monospace;
     font-size: 12px;
@@ -567,6 +619,10 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 </head>
 <body>
 
+<!-- ─── BG & CHAR LAYERS ─── -->
+<div class="bg-layer" id="bg-layer"></div>
+<div class="char-layer" id="char-layer"></div>
+
 <!-- ═══ TITLE ═══ -->
 <div class="screen active" id="screen-title">
   <div class="typewriter" id="title-type"></div>
@@ -612,7 +668,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 
 <!-- ═══ XU ROOM ═══ -->
 <div class="screen room-screen" id="screen-xu">
-  <div class="room-header" style="max-width:480px;width:100%;">
+  <div class="room-header">
     <div class="room-title" style="color:var(--xu-blue)">M 車廂 — 許墨</div>
     <button class="back-btn" onclick="goHub()">← 返回</button>
   </div>
@@ -621,7 +677,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 
 <!-- ═══ LI ROOM ═══ -->
 <div class="screen room-screen" id="screen-li">
-  <div class="room-header" style="max-width:480px;width:100%;">
+  <div class="room-header">
     <div class="room-title" style="color:var(--li-white)">L 車廂 — 黎深</div>
     <button class="back-btn" onclick="goHub()">← 返回</button>
   </div>
@@ -630,7 +686,7 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
 
 <!-- ═══ ICHI ROOM ═══ -->
 <div class="screen room-screen" id="screen-ichi">
-  <div class="room-header" style="max-width:480px;width:100%;">
+  <div class="room-header">
     <div class="room-title" style="color:var(--ichi-amber)">I 車廂 — 和泉一織</div>
     <button class="back-btn" onclick="goHub()">← 返回</button>
   </div>
@@ -748,7 +804,59 @@ cat > /mnt/user-data/outputs/birthday_game.html << 'HTMLEOF'
   <div class="final-title" id="true-title" style="display:none;opacity:0;transition:opacity 1.5s;">生日快樂</div>
 </div>
 
+<!-- ═══ AUDIO ═══ -->
+<audio id="bgm" preload="auto" style="display:none;"></audio>
+
 <script>
+// ── AUDIO MANAGER ──
+const AUDIO = {
+  mystery: 'm1.mp3',
+  solved: 'm2.mp3',
+  truth: 'm3.mp3',
+  current: null,
+};
+
+const bgmEl = document.getElementById('bgm');
+
+function playBGM(track) {
+  if (AUDIO.current === track) return;
+  AUDIO.current = track;
+  const src = AUDIO[track];
+  if (src) {
+    bgmEl.src = src;
+    bgmEl.volume = 0.5;
+    bgmEl.loop = (track !== 'solved');
+    bgmEl.play().catch(e => console.log('Audio play failed:', e));
+  }
+}
+
+function playMysteryBGM() { playBGM('mystery'); }
+function playSolvedBGM() { playBGM('solved'); }
+function playTruthBGM() { playBGM('truth'); }
+
+// ── BG/CHAR LAYERS ──
+function setBG(filename) {
+  const bgLayer = document.getElementById('bg-layer');
+  bgLayer.style.backgroundImage = `url('${filename}')`;
+  bgLayer.classList.add('active');
+}
+
+function setChar(filename) {
+  const charLayer = document.getElementById('char-layer');
+  charLayer.style.backgroundImage = `url('${filename}')`;
+  charLayer.classList.add('active');
+}
+
+function hideChar() {
+  const charLayer = document.getElementById('char-layer');
+  charLayer.classList.remove('active');
+}
+
+function hideBG() {
+  const bgLayer = document.getElementById('bg-layer');
+  bgLayer.classList.remove('active');
+}
+
 // ── STATE ──
 const STATE = {
   xuDone: false,
@@ -828,6 +936,7 @@ window.onload = function() {
 
 function goIntro() {
   showScreen('screen-intro');
+  playMysteryBGM();
   const introText = `偵測到乘客登入。
 
 今日應存在一個重要日期。
@@ -852,6 +961,9 @@ function goIntro() {
 function goHub() {
   updateHub();
   showScreen('screen-hub');
+  hideBG();
+  hideChar();
+  playMysteryBGM();
   checkAllDone();
 }
 
@@ -882,10 +994,22 @@ function checkAllDone() {
 }
 
 function enterRoom(room) {
-  if (room === 'xu') buildXuRoom();
-  if (room === 'li') buildLiRoom();
-  if (room === 'ichi') buildIchiRoom();
+  setBG('b1.png');
+  
+  if (room === 'xu') {
+    setChar('c1.png');
+    buildXuRoom();
+  }
+  if (room === 'li') {
+    setChar('c2.png');
+    buildLiRoom();
+  }
+  if (room === 'ichi') {
+    setChar('c3.png');
+    buildIchiRoom();
+  }
   showScreen('screen-' + room);
+  playMysteryBGM();
 }
 
 // ══════════════════════════════════
@@ -1028,6 +1152,7 @@ function updateXuBlanks() {
 
 function checkXuComplete() {
   if (STATE.xuBlanks[0] && STATE.xuBlanks[1] && STATE.xuBlanks[2]) {
+    playSolvedBGM();
     setTimeout(() => {
       const fr = document.getElementById('xu-final-reveal');
       fr.style.display = 'block';
@@ -1188,6 +1313,7 @@ function checkLiComplete() {
   const fr = document.getElementById('li-final-reveal');
   if (area) area.innerHTML = '';
   if (fr) {
+    playSolvedBGM();
     fr.style.display = 'block';
     fr.innerHTML = `
       <div class="document fade-in" style="border-color:var(--li-white)">
@@ -1338,8 +1464,6 @@ function buildIchiLetterPuzzle() {
   STATE.ichiLetters = new Array(TARGET_WORD.length).fill('');
 }
 
-let ichiCurrentSlot = 0;
-
 function ichiPickLetter(tile) {
   if (tile.classList.contains('used')) return;
   const letter = tile.dataset.letter;
@@ -1438,6 +1562,7 @@ function ichiComplete() {
     <div style="text-align:center;margin-top:16px;">
       <button class="btn ichi" onclick="completeRoom('ichi')">返回列車</button>
     </div>`;
+  playSolvedBGM();
   STATE.ichiDone = true;
   saveState();
 }
@@ -1445,8 +1570,7 @@ function ichiComplete() {
 // ── COMPLETE ROOM ──
 function completeRoom(room) {
   updateHub();
-  showScreen('screen-hub');
-  checkAllDone();
+  goHub();
 }
 
 // ── FINAL DOOR ──
@@ -1472,6 +1596,8 @@ document.addEventListener('keydown', e => {
 
 // ── ENDINGS ──
 function updateEndingsScreen() {
+  setBG('b2.png');
+  setChar('');
   const hint = document.getElementById('endings-hint');
   const seen = STATE.endingsSeen.size;
   if (seen === 0) hint.textContent = '選擇一個開始閱讀。';
@@ -1508,7 +1634,10 @@ function backToEndings(room) {
 
 // ── TRUE ENDING ──
 function goTrueEnding() {
+  setBG('b3.png');
+  hideChar();
   showScreen('screen-true');
+  playTruthBGM();
   const el = document.getElementById('true-type');
   const broadcastText = `日期還原完成。
 
@@ -1542,5 +1671,6 @@ function goTrueEnding() {
 </script>
 </body>
 </html>
+
 HTMLEOF
 echo "done"
