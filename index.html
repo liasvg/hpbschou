@@ -39,35 +39,38 @@
   }
 
   /* ── BACKGROUND LAYER ── */
-  .bg-layer {
+  #bg-layer {
     position: fixed;
     inset: 0;
-    background-size: cover;
-    background-position: center;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     opacity: 0;
     transition: opacity 1.2s ease;
-    z-index: -1;
+    z-index: 0;
+    display: block;
   }
-  .bg-layer.active {
+  #bg-layer.active {
     opacity: 1;
   }
 
   /* ── CHARACTER LAYER ── */
-  .char-layer {
+  #char-layer {
     position: fixed;
     right: 0;
     bottom: 0;
-    height: 100%;
+    height: 90%;
+    width: auto;
     max-width: 50%;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: right bottom;
+    object-fit: contain;
+    object-position: right bottom;
     opacity: 0;
     transition: opacity 0.8s ease;
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
+    display: block;
   }
-  .char-layer.active {
+  #char-layer.active {
     opacity: 1;
   }
 
@@ -617,8 +620,8 @@
 <body>
 
 <!-- ─── BG & CHAR LAYERS ─── -->
-<div class="bg-layer" id="bg-layer"></div>
-<div class="char-layer" id="char-layer"></div>
+<img id="bg-layer" src="" alt="" aria-hidden="true">
+<img id="char-layer" src="" alt="" aria-hidden="true">
 
 <!-- ═══ TITLE ═══ -->
 <div class="screen active" id="screen-title">
@@ -834,23 +837,35 @@ function playTruthBGM() { playBGM('truth'); }
 // ── BG/CHAR LAYERS ──
 function setBG(filename) {
   const bgLayer = document.getElementById('bg-layer');
-  bgLayer.style.backgroundImage = `url('${filename}')`;
-  bgLayer.classList.add('active');
+  if (filename) {
+    bgLayer.src = filename;
+    bgLayer.classList.add('active');
+  } else {
+    bgLayer.src = '';
+    bgLayer.classList.remove('active');
+  }
 }
 
 function setChar(filename) {
   const charLayer = document.getElementById('char-layer');
-  charLayer.style.backgroundImage = `url('${filename}')`;
-  charLayer.classList.add('active');
+  if (filename) {
+    charLayer.src = filename;
+    charLayer.classList.add('active');
+  } else {
+    charLayer.src = '';
+    charLayer.classList.remove('active');
+  }
 }
 
 function hideChar() {
   const charLayer = document.getElementById('char-layer');
+  charLayer.src = '';
   charLayer.classList.remove('active');
 }
 
 function hideBG() {
   const bgLayer = document.getElementById('bg-layer');
+  bgLayer.src = '';
   bgLayer.classList.remove('active');
 }
 
