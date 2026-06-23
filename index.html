@@ -631,6 +631,9 @@
     <div class="title-zh">查無此日</div>
     <div class="title-sub">DATE NOT FOUND</div>
     <button class="btn primary" onclick="goIntro()">登入列車系統</button>
+    <div style="margin-top:40px;">
+      <button onclick="resetGame()" style="background:none;border:none;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;cursor:pointer;padding:8px;">重新開始旅程</button>
+    </div>
   </div>
 </div>
 
@@ -883,6 +886,11 @@ const STATE = {
   ichiLetters: [],
   ichiLetterDone: false,
 };
+
+function resetGame() {
+  localStorage.clear();
+  location.reload();
+}
 
 function saveState() {
   localStorage.setItem('qwx_state', JSON.stringify({
